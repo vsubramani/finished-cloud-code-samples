@@ -10,6 +10,10 @@ const GUESTBOOK_API_ADDR = process.env.GUESTBOOK_API_ADDR
 
 const BACKEND_URI = `http://${GUESTBOOK_API_ADDR}/messages`
 
+const TRANSLATE_API_ADDR = process.env.TRANSLATE_API_ADDR
+
+const TRANSLATE_URI = `http://${TRANSLATE_API_ADDR}/?text=`
+
 app.set("view engine", "pug")
 app.set("views", path.join(__dirname, "views"))
 
@@ -44,9 +48,35 @@ router.get("/", (req, res) => {
     // retrieve list of messages from the backend, and use them to render the HTML template
     axios.get(BACKEND_URI)
       .then(response => {
-        console.log(`response from ${BACKEND_URI}: ` + response.status)
-        const result = util.formatMessages(response.data)
-        res.render("home", {messages: result})
+        console.log('got response: ' + JSON.stringify(response.data))
+        const result = util.formatMessages(response.data)	        var entries = response.data || [];
+        res.render("home", {messages: result})	        var strs = [];
+        for (var i = 0; i < entries.length; i++) {
+          strs.push(entries[i].body);
+        }
+
+         axios.get(encodeURI(TRANSLATE_URI + JSON.stringify(strs)))
+          .then(resp => {
+            console.log('got response: ' + JSON.stringify(resp.data))
+            var translations = resp.data || [];
+            var messages = [];
+            for (var i = 0; i < translations.length; i++) {
+              var e = entries[i];
+              var t = translations[i];
+              messages.push({
+                name: e.name,
+                body: e.body,
+                timestamp: e.timestamp,
+                english: t.english,
+                german: t.english
+              })
+            }
+            const result = util.formatMessages(messages)
+            res.render("home", {messages: result})
+          })
+          .catch(err => {
+            console.log('error with promise: ' + err)
+          })
       }).catch(error => {
         console.error('error: ' + error)
     })

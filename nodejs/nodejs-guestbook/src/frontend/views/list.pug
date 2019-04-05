@@ -6,6 +6,12 @@ if messages.length > 0
                 h6.card-subtitle.mb-2.text-muted  #{msg.timeAgo} 
                 br
                 p.card-text #{msg.body}
+                p.card-text
+                    i.em.em-flag-um
+                    span #{msg.english}
+                p.card-text
+                    i.em.em-de
+                    span #{msg.german}
                 br
 
 else
